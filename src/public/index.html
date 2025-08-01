@@ -312,8 +312,54 @@
             color: #2c3e50;
         }
         
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .auth-tab:hover {
+            background: #e9ecef;
+        }
+        
+        .auth-tab.active:hover {
+            background: #0056b3;
+        }
+        
+        .auth-content {
+            transition: all 0.3s ease;
+        }
+        
         .error-message {
             background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: #28a745;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -501,19 +547,53 @@
         <!-- Login form -->
         <div class="login-form" id="loginForm" style="display: none;">
             <div class="login-container">
-                <h2>🔐 Login - Loja de Camisetas</h2>
-                <form id="formLogin">
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" name="email" value="admin@loja.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Senha:</label>
-                        <input type="password" name="senha" value="admin123" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                </form>
-                <div id="loginError" class="error-message" style="display: none;"></div>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="showAuthTab('login')">🔐 Login</button>
+                    <button class="auth-tab" onclick="showAuthTab('register')">📝 Cadastro</button>
+                </div>
+                
+                <!-- Login Tab -->
+                <div id="loginTab" class="auth-content">
+                    <h2>🔐 Login - Loja de Camisetas</h2>
+                    <form id="formLogin">
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" name="email" value="admin@loja.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Senha:</label>
+                            <input type="password" name="senha" value="admin123" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                    </form>
+                    <div id="loginError" class="error-message" style="display: none;"></div>
+                </div>
+                
+                <!-- Register Tab -->
+                <div id="registerTab" class="auth-content" style="display: none;">
+                    <h2>📝 Cadastro - Loja de Camisetas</h2>
+                    <form id="formRegister">
+                        <div class="form-group">
+                            <label>Nome Completo:</label>
+                            <input type="text" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Senha:</label>
+                            <input type="password" name="senha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmar Senha:</label>
+                            <input type="password" name="confirmarSenha" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Cadastrar</button>
+                    </form>
+                    <div id="registerError" class="error-message" style="display: none;"></div>
+                    <div id="registerSuccess" class="success-message" style="display: none;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -859,6 +939,12 @@
             await fazerLogin();
         });
         
+        // Event listener para o formulário de cadastro
+        document.getElementById('formRegister').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fazerCadastro();
+        });
+        
         async function checkAuthentication() {
             document.getElementById('loadingOverlay').style.display = 'flex';
             
@@ -956,6 +1042,21 @@
             window.location.href = '/';
         }
         
+        function showAuthTab(tab) {
+            // Atualizar abas
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Mostrar conteúdo da aba selecionada
+            document.querySelectorAll('.auth-content').forEach(c => c.style.display = 'none');
+            document.getElementById(tab + 'Tab').style.display = 'block';
+            
+            // Limpar mensagens de erro
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+            document.getElementById('registerSuccess').style.display = 'none';
+        }
+        
         async function fazerLogin() {
             const formData = new FormData(document.getElementById('formLogin'));
             const email = formData.get('email');
@@ -991,6 +1092,59 @@
                 console.error('Erro no login:', error);
                 document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
                 document.getElementById('loginError').style.display = 'block';
+            }
+        }
+        
+        async function fazerCadastro() {
+            const formData = new FormData(document.getElementById('formRegister'));
+            const nome = formData.get('nome');
+            const email = formData.get('email');
+            const senha = formData.get('senha');
+            const confirmarSenha = formData.get('confirmarSenha');
+            
+            // Validações
+            if (senha !== confirmarSenha) {
+                document.getElementById('registerError').textContent = 'As senhas não coincidem!';
+                document.getElementById('registerError').style.display = 'block';
+                return;
+            }
+            
+            if (senha.length < 6) {
+                document.getElementById('registerError').textContent = 'A senha deve ter pelo menos 6 caracteres!';
+                document.getElementById('registerError').style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/registrar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nome, email, senha })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('registerSuccess').textContent = 'Usuário cadastrado com sucesso! Faça login para continuar.';
+                    document.getElementById('registerSuccess').style.display = 'block';
+                    
+                    // Limpar formulário
+                    document.getElementById('formRegister').reset();
+                    
+                    // Voltar para aba de login após 2 segundos
+                    setTimeout(() => {
+                        showAuthTab('login');
+                    }, 2000);
+                } else {
+                    document.getElementById('registerError').textContent = result.message || 'Erro no cadastro';
+                    document.getElementById('registerError').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                document.getElementById('registerError').textContent = 'Erro de conexão. Tente novamente.';
+                document.getElementById('registerError').style.display = 'block';
             }
         }
         
