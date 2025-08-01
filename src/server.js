@@ -382,12 +382,9 @@ app.get('/recreate-tables', async (req, res) => {
   }
 });
 
-// Rota 404
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Rota não encontrada',
-    path: req.originalUrl
-  });
+// Rota catch-all para SPA (Single Page Application)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Iniciar servidor
