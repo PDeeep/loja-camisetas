@@ -290,6 +290,37 @@
             text-align: center;
         }
         
+        .login-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
         .btn-action {
             background: none;
             border: none;
@@ -463,8 +494,27 @@
 <body>
     <!-- Loading overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
+        <div class="loading-spinner" id="loadingSpinner">
             <div>Verificando autenticação...</div>
+        </div>
+        
+        <!-- Login form -->
+        <div class="login-form" id="loginForm" style="display: none;">
+            <div class="login-container">
+                <h2>🔐 Login - Loja de Camisetas</h2>
+                <form id="formLogin">
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" name="email" value="admin@loja.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha:</label>
+                        <input type="password" name="senha" value="admin123" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+            </div>
         </div>
     </div>
 
@@ -803,6 +853,12 @@
             await checkAuthentication();
         });
         
+        // Event listener para o formulário de login
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fazerLogin();
+        });
+        
         async function checkAuthentication() {
             document.getElementById('loadingOverlay').style.display = 'flex';
             
@@ -810,8 +866,9 @@
             const userData = localStorage.getItem('usuario');
             
             if (!token || !userData) {
-                // Redirecionar para login
-                window.location.href = '/';
+                // Mostrar formulário de login
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'flex';
                 return;
             }
             
@@ -897,6 +954,44 @@
             localStorage.removeItem('token');
             localStorage.removeItem('usuario');
             window.location.href = '/';
+        }
+        
+        async function fazerLogin() {
+            const formData = new FormData(document.getElementById('formLogin'));
+            const email = formData.get('email');
+            const senha = formData.get('senha');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Salvar token e dados do usuário
+                    localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('usuario', JSON.stringify(result.data.usuario));
+                    
+                    // Esconder formulário de login e mostrar aplicação
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('loadingSpinner').style.display = 'block';
+                    
+                    // Verificar autenticação novamente
+                    await checkAuthentication();
+                } else {
+                    document.getElementById('loginError').textContent = result.message || 'Erro no login';
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
+                document.getElementById('loginError').style.display = 'block';
+            }
         }
         
         // Função para fazer requisições autenticadas
