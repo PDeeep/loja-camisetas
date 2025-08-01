@@ -32,7 +32,26 @@ Sistema completo de gestão para loja de camisetas desenvolvido em Node.js com E
 - PostgreSQL
 - npm ou yarn
 
-### Passos para Instalação
+### 🚀 Deploy no Railway (Recomendado)
+
+1. **Fork este repositório** no GitHub
+2. **Acesse o Railway**: https://railway.app
+3. **Faça login** com sua conta GitHub
+4. **Clique em "New Project"**
+5. **Selecione "Deploy from GitHub repo"**
+6. **Escolha o repositório** `loja-camisetas`
+7. **Adicione um banco PostgreSQL**:
+   - Clique em "New"
+   - Selecione "Database" → "PostgreSQL"
+8. **Configure as variáveis de ambiente**:
+   - Vá em "Variables"
+   - Adicione: `JWT_SECRET=sua_chave_secreta_muito_segura`
+9. **O Railway automaticamente**:
+   - Detecta o `DATABASE_URL`
+   - Configura a porta
+   - Faz o deploy
+
+### 💻 Instalação Local
 
 1. **Clone o repositório**
 ```bash
